@@ -4,6 +4,43 @@ import numpy as np
 import re
 
 
+def add_dicts(dict1, dict2):
+    """Adds corresponding values of two dictionaries.
+
+    Args:
+      dict1: The first dictionary.
+      dict2: The second dictionary.
+
+    Returns:
+      A new dictionary with the added values.
+    """
+
+    combined_dict = {key: dict1.get(key, 0) + dict2.get(key, 0)
+                     for key in set(dict1) | set(dict2)}
+    return combined_dict
+
+
+def add_values_in_nested_lists(list_of_dicts):
+    """Adds values in nested lists within dictionaries with the same keys.
+
+    Args:
+      list_of_dicts: A list of dictionaries.
+
+    Returns:
+      A new dictionary with summed values.
+    """
+
+    result = {}
+    for d in list_of_dicts:
+        for key, values in d.items():
+            if key not in result:
+                result[key] = [sum(x) for x in zip(*values)]
+            else:
+                for i in range(len(result[key])):
+                    result[key][i] += values[i]
+    return result
+
+
 def graph(x, y):
     # Sets up plot
     plt.plot(x, y, linestyle='dashed', marker='o')
@@ -56,6 +93,48 @@ def parse_text(file_name) -> list:
 
     return parsed_text
 
+
+def analyze_text(text_chunk: list):
+    sentiment_scores = []
+    analyzer = SentimentIntensityAnalyzer()
+    for i, sentence in enumerate(text_chunk):
+        date = sentence[-12:]
+        vs = analyzer.polarity_scores(sentence)
+        # if chat_log[i+1][-12:] == date:
+        #     # Check if the next sentece has the same date then add later
+        #     sentence_analysis
+        #     count += 1
+        # else:
+        sentiment_scores.append(
+            {date: [vs["neg"], vs["neu"], vs["pos"], vs["compound"]]})
+        # print("{:-<65} {}".format(sentence, str(vs)))
+    return sentiment_scores
+
+
+def condense_scores(sentiment_scores: list):
+    new_sentiment_scores = []
+    len_scores = len(sentiment_scores)
+    count = 0
+    prev = {}
+    # for i in range(len_scores):
+    #     if scores[i][0] == scores[i+1][0]:
+    #         scores[i][1] += scores[i+1][1]
+    #         scores[i][2] += scores[i+1][2]
+    #         scores[i][3] += scores[i+1][3]
+    #         scores[i][4] += scores[i+1][4]
+    #         sentiment_scores.pop(i+1)
+    #         count += 1
+    #         if i+1 == len_scores-count:
+    #             break
+    # print(sentiment_scores)
+
+
+def get_compound(sentiment_scores: list):
+    compound_score = []
+    for sentence in sentiment_scores:
+        compound_score.append(sentence[4])
+    return compound_score
+
     # --- examples -------
 sentences = ["VADER is smart, handsome, and funny.",  # positive sentence example
              # punctuation emphasis handled correctly (sentiment intensity adjusted)
@@ -90,32 +169,26 @@ custom = ["Today was awful due to my code not working properly and barely gettin
           "I researched about finding slow-time data for RTI plot, and continued coding/researching all around the place.",
           "my schedule was a bit unorganized."
           ]
-analyzer = SentimentIntensityAnalyzer()
-sentence_analysis = []
+
 
 chat_log = parse_text("chat_logs\general_redpanda9347.txt")
-count = 0
-for i, sentence in enumerate(chat_log):
+chat_log.pop(0)
+scores = analyze_text(chat_log)
+condense_scores(scores)
+compound_scores = get_compound(scores)
+
+
+dates = []
+for sentence in chat_log:
     date = sentence[-12:]
-    vs = analyzer.polarity_scores(sentence)
-    # if chat_log[i+1][-12:] == date:
-    #     # Check if the next sentece has the same date then add later
-    #     sentence_analysis
-    #     count += 1
-    # else:
-    sentence_analysis.append(vs)
-    # print("{:-<65} {}".format(sentence, str(vs)))
+    dates.append(date)
 
 
-data_points = []
+num_scores = np.arange(1, len(compound_scores)+1, 1, dtype=int)
 
-for sentence in sentence_analysis:
-    print(sentence["compound"])
-    data_points.append(sentence["compound"])
+# print("#$#$#"*20)
+# print(chat_log)
+# print(len(date))
+# print(len(data_points))
 
-print(np.arange(1, len(data_points)+1, 1, dtype=int))
-
-print("#$#$#"*20)
-print(chat_log)
-
-graph(np.arange(1, len(data_points)+1, 1, dtype=int), data_points)
+# graph(num_scores, compound_scores)
