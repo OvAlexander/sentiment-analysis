@@ -32,19 +32,24 @@ async def on_message(msg):
             for channel in guild.channels:
                 channels.append(channel)
         # print(f"\n\n\n{channels}")
+    # <Message id=1263125889642663967 channel=<TextChannel id=1262959409064317071 name='general' position=0 nsfw=False news=False category_id=1262959409064317069> type=<MessageType.default: 0> author=<Member id=1262958127532474440 name='TonySARk - IronBeaver' global_name=None bot=True nick=None guild=<Guild id=1262959409064317068 name='Testing Grounds' shard_id=0 chunked=False member_count=2>> flags=<MessageFlags value=0>>,
     for channel in channels:
         print(f"Channel: {channel.name} \n Type: {type(channel)}")
         if type(channel) == discord.channel.TextChannel:
-            messages = [message async for message in channel.history(limit=None)]
-            # print(messages)
-            channel_msgs[channel.name] = messages
+            members = channel.members
+            for member in members:
+                if member.id == 1262958127532474440:
+                    print("True")
+                    messages = [message async for message in channel.history(limit=None)]
+                    # print(messages)
+                    channel_msgs[channel.name] = messages
 
     text_for_file = {}
     for channel_msg in channel_msgs.values():
-        print("#"*50)
-        print(type(channel_msg))
-        print(channel_msg)
-        print("#"*50)
+        # print("#"*50)
+        # print(type(channel_msg))
+        # print(channel_msg)
+        # print("#"*50)
         for message in channel_msg:
             user = message.author
             msg_id = message.id
