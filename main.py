@@ -3,6 +3,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import re
 
+# (\d{1,3}|\d{1,3}\.\d{1,3})\/\d{1,3}
+LOGGING = False
+
+
+def log(*args, **kwargs):
+    if LOGGING:
+        print(*args, **kwargs)
+
 
 def add_dicts(dict1, dict2):
     """Adds corresponding values of two dictionaries.
@@ -53,7 +61,25 @@ def graph(x, y):
     plt.ylim(-1.00, 1.00)
 
     # Creates a line displaying neutral
-    plt.hlines(0, 1, max(x))
+    plt.hlines(0, 0, max(x))
+
+    # Creates plot
+    plt.show()
+
+
+def graph_scores(x, y):
+    # Sets up plot
+    plt.plot(x, y, linestyle='dashed', marker='o')
+    plt.xlabel("Sentence Number")
+    plt.ylabel("Sentiment")
+    plt.title("Sentiment Analysis over Time")
+    plt.margins(x=0, y=0)
+    plt.xticks(x)
+
+    plt.ylim(0, 10)
+
+    # Creates a line displaying neutral
+    plt.hlines(5, 0, max(x))
 
     # Creates plot
     plt.show()
@@ -90,7 +116,6 @@ def parse_text(file_name) -> list:
         else:
             parsed_line = line
         parsed_text.append(parsed_line)
-
     return parsed_text
 
 
@@ -98,42 +123,58 @@ def analyze_text(text_chunk: list):
     sentiment_scores = []
     analyzer = SentimentIntensityAnalyzer()
     for i, sentence in enumerate(text_chunk):
-        date = sentence[-12:]
+        date = sentence[-12:-1]
         vs = analyzer.polarity_scores(sentence)
-        # if chat_log[i+1][-12:] == date:
-        #     # Check if the next sentece has the same date then add later
-        #     sentence_analysis
-        #     count += 1
-        # else:
         sentiment_scores.append(
             {date: [vs["neg"], vs["neu"], vs["pos"], vs["compound"]]})
-        # print("{:-<65} {}".format(sentence, str(vs)))
+        log("{:-<65} {}".format(sentence, str(vs)))
     return sentiment_scores
 
 
-def condense_scores(sentiment_scores: list):
-    new_sentiment_scores = []
-    len_scores = len(sentiment_scores)
-    count = 0
-    prev = {}
-    # for i in range(len_scores):
-    #     if scores[i][0] == scores[i+1][0]:
-    #         scores[i][1] += scores[i+1][1]
-    #         scores[i][2] += scores[i+1][2]
-    #         scores[i][3] += scores[i+1][3]
-    #         scores[i][4] += scores[i+1][4]
-    #         sentiment_scores.pop(i+1)
-    #         count += 1
-    #         if i+1 == len_scores-count:
-    #             break
-    # print(sentiment_scores)
+def scan_for_scores(text_chunk: list):
+    pattern = r"(\d{1,3}|\d{1,3}\.\d{1,3})\/\d{1,3}"
+    scores = []
+    dates = []
+    for text in text_chunk:
+        date = text[-12:-1]
+        if re.search(pattern=pattern, string=text):
+            score = float(re.findall(pattern=pattern,
+                                     string=text)[0])
+            if date in dates:
+                scores[len(scores)-1] = (scores[len(scores)-1] + score)/2
+            else:
+                scores.append(score)
+                dates.append(date)
+    return scores, dates
 
 
 def get_compound(sentiment_scores: list):
     compound_score = []
+    prev_date = 0
     for sentence in sentiment_scores:
-        compound_score.append(sentence[4])
+        for date, score in sentence.items():
+            if date == prev_date:
+                compound_score[len(compound_score)-1] += score[3]
+            else:
+                compound_score.append(score[3])
+            prev_date = date
     return compound_score
+
+
+def get_dates(sentiment_scores: list):
+    dates = []
+    for sentence in sentiment_scores:
+        if (isinstance(sentence, dict)):
+            for date, score in sentence.items():
+                if date not in dates:
+                    dates.append(date)
+        else:
+            date = sentence[-12:-1]
+            if date not in dates:
+                dates.append(date)
+
+    return dates
+
 
     # --- examples -------
 sentences = ["VADER is smart, handsome, and funny.",  # positive sentence example
@@ -172,23 +213,25 @@ custom = ["Today was awful due to my code not working properly and barely gettin
 
 
 chat_log = parse_text("chat_logs\general_redpanda9347.txt")
+chat_log2 = parse_text("chat_logs\merpymerp_redpanda9347.txt")
+
 chat_log.pop(0)
+chat_log2.pop(0)
+
+chat_scores, chat_scores_dates = scan_for_scores(chat_log2)
+
+chat_scores.reverse()
+chat_scores_dates.reverse()
+
 scores = analyze_text(chat_log)
-condense_scores(scores)
+
 compound_scores = get_compound(scores)
+dates = get_dates(scores)
 
-
-dates = []
-for sentence in chat_log:
-    date = sentence[-12:]
-    dates.append(date)
-
+compound_scores.reverse()
+dates.reverse()
 
 num_scores = np.arange(1, len(compound_scores)+1, 1, dtype=int)
 
-# print("#$#$#"*20)
-# print(chat_log)
-# print(len(date))
-# print(len(data_points))
-
-# graph(num_scores, compound_scores)
+graph(dates, compound_scores)
+graph_scores(chat_scores_dates, chat_scores)
