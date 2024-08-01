@@ -2,9 +2,15 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import matplotlib.pyplot as plt
 import numpy as np
 import re
-
+import os
 # (\d{1,3}|\d{1,3}\.\d{1,3})\/\d{1,3}
 LOGGING = False
+DATES = ['Jul  8 2024', 'Jul  9 2024', 'Jul 10 2024', 'Jul 11 2024', 'Jul 12 2024',
+         'Jul 15 2024', 'Jul 16 2024', 'Jul 17 2024', 'Jul 18 2024', 'Jul 19 2024',
+         'Jul 22 2024', 'Jul 23 2024', 'Jul 24 2024', 'Jul 25 2024', 'Jul 26 2024',
+         'Jul 29 2024', 'Jul 30 2024']
+# , 'Jul 31 2024', 'Aug  1 2024', 'Aug  2 2024',
+#          'Aug  3 2024', 'Aug  4 2024']
 
 
 def log(*args, **kwargs):
@@ -26,6 +32,10 @@ def add_dicts(dict1, dict2):
     combined_dict = {key: dict1.get(key, 0) + dict2.get(key, 0)
                      for key in set(dict1) | set(dict2)}
     return combined_dict
+
+
+def scale(x, in_min, in_max, out_min, out_max):
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 
 def add_values_in_nested_lists(list_of_dicts):
@@ -62,6 +72,7 @@ def graph(x, y):
 
     # Creates a line displaying neutral
     plt.hlines(0, 0, max(x))
+    plt.grid(color='c', linestyle='--', linewidth=0.5)
 
     # Creates plot
     plt.show()
@@ -75,11 +86,12 @@ def graph_scores(x, y):
     plt.title("Sentiment Analysis over Time")
     plt.margins(x=0, y=0)
     plt.xticks(x)
-
+    plt.yticks(np.arange(0, 11))
     plt.ylim(0, 10)
 
     # Creates a line displaying neutral
     plt.hlines(5, 0, max(x))
+    plt.grid(color='c', linestyle='--', linewidth=0.25)
 
     # Creates plot
     plt.show()
@@ -105,7 +117,7 @@ def graph_dates(x, y):
 
 def parse_text(file_name) -> list:
     parsed_text = []
-    file = open(file_name, "r")
+    file = open(file_name, "r", encoding="utf-8")
 
     "Thu Jul 18 15:07:49 2024"
     for line in file:
@@ -135,6 +147,7 @@ def scan_for_scores(text_chunk: list):
     pattern = r"(\d{1,3}|\d{1,3}\.\d{1,3})\/\d{1,3}"
     scores = []
     dates = []
+    analyzer = SentimentIntensityAnalyzer()
     for text in text_chunk:
         date = text[-12:-1]
         if re.search(pattern=pattern, string=text):
@@ -145,6 +158,35 @@ def scan_for_scores(text_chunk: list):
             else:
                 scores.append(score)
                 dates.append(date)
+    return scores, dates
+
+
+def mixed_entry(text_chunk: list):
+    pattern = r"(\d{1,3}|\d{1,3}\.\d{1,3})\/\d{1,3}"
+    scores = []
+    dates = []
+    analyzer = SentimentIntensityAnalyzer()
+    for sentence in text_chunk:
+        date = sentence[-12:-1]
+        if re.search(pattern=pattern, string=sentence):
+            score = float(re.findall(pattern=pattern,
+                                     string=sentence)[0])
+            if date in dates:
+                scores[len(scores)-1] = (scores[len(scores)-1] + score)/2
+            else:
+                scores.append(score)
+                dates.append(date)
+        else:
+            score = analyzer.polarity_scores(sentence)
+            remapped_score = scale(score["compound"], -1.0, 1.0, 0, 10)
+            if date in dates:
+                scores[len(scores)-1] = (scores[len(scores)-1] +
+                                         remapped_score)/2
+            else:
+                scores.append(remapped_score)
+                dates.append(date)
+    print(scores)
+    print(dates)
     return scores, dates
 
 
@@ -174,6 +216,48 @@ def get_dates(sentiment_scores: list):
                 dates.append(date)
 
     return dates
+
+
+def interp(data: list, days: list) -> list:
+    days_with_data = []
+
+    # data = [7.0, 5.0, None, 1.0, None, None, None,
+    #         9.0, 6.0, None, None, None, None, 7.0]
+    interp_data = []
+    for date in DATES:
+        if date in days:
+            days_with_data.append(True)
+        else:
+            days_with_data.append(False)
+            pos = DATES.index(date)
+            data.insert(pos, None)
+
+    i = 0
+    while i < len(days_with_data):
+        dd = days_with_data[i]
+        if (i == 0 or i == len(days_with_data) - 1) and dd == 0:
+            raise ValueError('Cannot interpolate because of undefined bounds')
+
+        if dd == False:
+            # Find index bounds to lerp
+            first = i - 1
+            remaining = days_with_data[i:]
+            last = remaining.index(True) + i
+            n_steps = last - first - 1
+
+            # Compute lerp
+            # 2 to account for start and end, then cut off start and end
+            pts = np.linspace(data[first], data[last],
+                              n_steps + 2)[1:n_steps + 1]
+            interp_data += list(pts)
+
+            # Set i to last index
+            i = last - 1
+
+        else:
+            interp_data += [data[i]]
+        i += 1
+    return interp_data
 
 
     # --- examples -------
@@ -212,26 +296,47 @@ custom = ["Today was awful due to my code not working properly and barely gettin
           ]
 
 
-chat_log = parse_text("chat_logs\general_redpanda9347.txt")
-chat_log2 = parse_text("chat_logs\merpymerp_redpanda9347.txt")
+chat_log = parse_text("bwsi_logs/yuno-n_agentn_.txt")
+chat_log2 = parse_text("bwsi_logs/ajay-g_ajaytastic.txt")
+chat_log3 = parse_text("bwsi_logs/jacqueline-t_dear_jacquelineee0905.txt")
+chat_log4 = parse_text("bwsi_logs/victoria-g_ocurien.txt")
+chat_log5 = parse_text("bwsi_logs/jeffrey-t_jefft72.txt")
 
 chat_log.pop(0)
 chat_log2.pop(0)
+chat_log3.pop(0)
+chat_log4.pop(0)
+chat_log5.pop(0)
 
-chat_scores, chat_scores_dates = scan_for_scores(chat_log2)
+# Chat log 3
+score, date = mixed_entry(chat_log3)
+score, date = mixed_entry(chat_log4)
+score, date = mixed_entry(chat_log5)
 
-chat_scores.reverse()
-chat_scores_dates.reverse()
 
-scores = analyze_text(chat_log)
+# # Chat log 2
+# chat_scores, chat_scores_dates = scan_for_scores(chat_log2)
 
-compound_scores = get_compound(scores)
-dates = get_dates(scores)
+# chat_scores.reverse()
+# chat_scores_dates.reverse()
+# # Chat Log 1
+# scores = analyze_text(chat_log)
 
-compound_scores.reverse()
-dates.reverse()
+# compound_scores = get_compound(scores)
+# dates = get_dates(scores)
 
-num_scores = np.arange(1, len(compound_scores)+1, 1, dtype=int)
+# compound_scores.reverse()
+# dates.reverse()
 
-graph(dates, compound_scores)
-graph_scores(chat_scores_dates, chat_scores)
+# num_scores = np.arange(1, len(compound_scores)+1, 1, dtype=int)
+
+# graph(dates, compound_scores)
+# graph_scores(chat_scores_dates, chat_scores)
+
+date.reverse()
+score.reverse()
+new_score = interp(score, date)
+print("LOOOOK HERE")
+print(new_score)
+print(DATES)
+graph_scores(DATES, new_score)
