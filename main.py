@@ -10,7 +10,10 @@ DATES = ['Jul  8 2024', 'Jul  9 2024', 'Jul 10 2024', 'Jul 11 2024', 'Jul 12 202
          'Jul 22 2024', 'Jul 23 2024', 'Jul 24 2024', 'Jul 25 2024', 'Jul 26 2024',
          'Jul 29 2024', 'Jul 30 2024']
 # , 'Jul 31 2024', 'Aug  1 2024', 'Aug  2 2024',
-#          'Aug  3 2024', 'Aug  4 2024']
+#          'Aug  3 2024']
+
+NUM_DATES = ['07/08', '07/09', '07/10', '07/11', '07/12', '07/15', '07/16', '07/17',
+             '07/18', '07/19', '07/22', '07/23', '07/24', '07/25', '07/26', '07/29', '07/30']
 
 
 def log(*args, **kwargs):
@@ -78,14 +81,14 @@ def graph(x, y):
     plt.show()
 
 
-def graph_scores(x, y):
+def graph_scores(x, y, file_name):
     # Sets up plot
     plt.plot(x, y, linestyle='dashed', marker='o')
     plt.xlabel("Sentence Number")
     plt.ylabel("Sentiment")
     plt.title("Sentiment Analysis over Time")
     plt.margins(x=0, y=0)
-    plt.xticks(x)
+    plt.xticks(x, rotation=45, ha='right')
     plt.yticks(np.arange(0, 11))
     plt.ylim(0, 10)
 
@@ -94,7 +97,8 @@ def graph_scores(x, y):
     plt.grid(color='c', linestyle='--', linewidth=0.25)
 
     # Creates plot
-    plt.show()
+    plt.savefig(file_name)
+    # plt.show()
 
 
 def graph_dates(x, y):
@@ -260,6 +264,22 @@ def interp(data: list, days: list) -> list:
     return interp_data
 
 
+def gather_file_names(directory_path):
+    """Gathers file names from a given directory.
+
+    Args:
+      directory_path: The path to the directory to scan.
+
+    Returns:
+      A list of file names within the directory.
+    """
+
+    file_names = []
+    for root, _, files in os.walk(directory_path):
+        for file in files:
+            file_names.append(file)
+    return file_names
+
     # --- examples -------
 sentences = ["VADER is smart, handsome, and funny.",  # positive sentence example
              # punctuation emphasis handled correctly (sentiment intensity adjusted)
@@ -295,23 +315,43 @@ custom = ["Today was awful due to my code not working properly and barely gettin
           "my schedule was a bit unorganized."
           ]
 
+student_logs = gather_file_names("bwsi_logs")
+total_data = []
+count = 0
+for text_files in student_logs:
+    print(f"Trying to plot {text_files}")
+    chat_log = parse_text(f"bwsi_logs/{text_files}")
+    chat_log.pop(0)
+    score, date = mixed_entry(chat_log)
 
-chat_log = parse_text("bwsi_logs/yuno-n_agentn_.txt")
-chat_log2 = parse_text("bwsi_logs/ajay-g_ajaytastic.txt")
-chat_log3 = parse_text("bwsi_logs/jacqueline-t_dear_jacquelineee0905.txt")
-chat_log4 = parse_text("bwsi_logs/victoria-g_ocurien.txt")
-chat_log5 = parse_text("bwsi_logs/jeffrey-t_jefft72.txt")
+    date.reverse()
+    score.reverse()
+    new_score = interp(score, date)
+    total_data += new_score
+    graph_filename = "./bwsi_graphs/"+text_files[:-2]+"_graph.png"
+    graph_scores(NUM_DATES, new_score, graph_filename)
+    count += 1
 
-chat_log.pop(0)
-chat_log2.pop(0)
-chat_log3.pop(0)
-chat_log4.pop(0)
-chat_log5.pop(0)
+total_data *= 1.0/count
+
+graph_filename = "./bwsi_graphs/total_avg_graph.png"
+graph_scores(NUM_DATES, total_data, graph_filename)
+# chat_log = parse_text("bwsi_logs/yuno-n_agentn_.txt")
+# chat_log2 = parse_text("bwsi_logs/ajay-g_ajaytastic.txt")
+# chat_log3 = parse_text("bwsi_logs/jacqueline-t_dear_jacquelineee0905.txt")
+# chat_log4 = parse_text("bwsi_logs/victoria-g_ocurien.txt")
+# chat_log5 = parse_text("bwsi_logs/jeffrey-t_jefft72.txt")
+
+# chat_log.pop(0)
+# chat_log2.pop(0)
+# chat_log3.pop(0)
+# chat_log4.pop(0)
+# chat_log5.pop(0)
 
 # Chat log 3
-score, date = mixed_entry(chat_log3)
-score, date = mixed_entry(chat_log4)
-score, date = mixed_entry(chat_log5)
+# score, date = mixed_entry(chat_log3)
+# score, date = mixed_entry(chat_log4)
+# score, date = mixed_entry(chat_log5)
 
 
 # # Chat log 2
@@ -333,10 +373,9 @@ score, date = mixed_entry(chat_log5)
 # graph(dates, compound_scores)
 # graph_scores(chat_scores_dates, chat_scores)
 
-date.reverse()
-score.reverse()
-new_score = interp(score, date)
-print("LOOOOK HERE")
-print(new_score)
-print(DATES)
-graph_scores(DATES, new_score)
+# date.reverse()
+# score.reverse()
+# new_score = interp(score, date)
+# print(new_score)
+# print(DATES)
+# graph_scores(DATES, new_score)

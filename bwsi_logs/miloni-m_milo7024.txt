@@ -1,0 +1,21 @@
+milo7024
+today i continued working on the presentation.. it's mostly done we just need to add the actual pictures and development info. We also tried collecting radar data while flying. I'd say it worked out pretty well for the first time.
+
+you can use Alex's bot! :splitter: Tue Jul 30 21:01:04 2024
+today i started working on the presentation and finished about a quarter of it. We were able to get back projection working too! We are hopeful that ebverything runs well before the final event, :splitter: Mon Jul 29 21:01:13 2024
+today we realized our range offset is not consistent. we are going to try to fix that and then try and also fix our back projection. besides that, watching the olympic opening ceremony was fun. :splitter: Fri Jul 26 21:00:02 2024
+today we were trying to understand our back projection images we're getting.  it's still a work in progess. :splitter: Thu Jul 25 20:59:04 2024
+today we were trying to fix our back projection or like understand it. we made very little progress on that. but aviv was able to fly the drone pretty well today. :splitter: Wed Jul 24 21:02:38 2024
+today was a 8/10. It was a pretty productive day today. :splitter: Tue Jul 23 21:02:31 2024
+today, athreya and i worked on the simulated data. then we went to the high bay for radar testing and to practice flying the drone. We got motion capture data so we can use that to work with aligning it w the radar timings. :splitter: Mon Jul 22 20:54:16 2024
+today we finally were able to get the drone to fly after all the motor problems we had. now, we just have to fix the different speeds of the propellers. :splitter: Fri Jul 19 20:50:37 2024
+today i think was a 9/10. I had fun with the hardware part of the drone fixing. :splitter: Thu Jul 18 20:56:25 2024
+never mind we finished the radar offset issue right after i sent that :splitter: Wed Jul 17 20:56:12 2024
+today aviv and i went to the high bay where we tested our motor rotation. we struggled with mission planner for a while (its still currently a work in progress). as for the motor rotation we have 2 jittery motors, and 1 likely/maybe broken (we still need to do some testing to figure out if it was an electrical or mechanical problem). then we worked on the radar to see if our offset is accurate, which it is not, so we also have that to fix. other than that, today was pretty productive. :splitter: Wed Jul 17 20:54:59 2024
+I think we were able to somewhat figure out the back projection. But, I think I got a little confused along the way so I'm going to do a little more research on it. Otheriwse, I would say we made a decent amount of progress. :splitter: Tue Jul 16 20:56:16 2024
+today was pretty good. our rti plot portrays the movement well but there is still something wrong with the range a little bit. :splitter: Mon Jul 15 20:58:57 2024
+today we tried to fix our RTI plot mostly by testing and figured out some of the problems and still have to fix a few more problems. :splitter: Fri Jul 12 21:00:41 2024
+we finally understood some of what we were doing so that was good. i’d rate today a 7/10 only because I am not the biggest fan of software. :splitter: Thu Jul 11 20:56:07 2024
+Finishing our drone was so fun and felt like a nice achievement! Today was definitely a 10/10. :splitter: Wed Jul 10 20:54:57 2024
+I had a lot of fun today with the beginning of building our drones! :splitter: Tue Jul  9 20:56:18 2024
+Today was amazing! It was exciting to meet new people and get to know our groups for our final project! :splitter: Mon Jul  8 21:03:28 2024
