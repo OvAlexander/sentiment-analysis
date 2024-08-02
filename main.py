@@ -306,10 +306,10 @@ for text_files in student_logs:
     graph_scores(NUM_DATES, new_score, graph_filename)
     count += 1
 
-total_data *= 1.0/count
+# total_data *= 1.0/count
 
-graph_filename = "./bwsi_graphs/total_avg_graph.png"
-graph_scores(NUM_DATES, total_data, graph_filename)
+# graph_filename = "./bwsi_graphs/total_avg_graph.png"
+# graph_scores(NUM_DATES, total_data, graph_filename)
 # chat_log = parse_text("bwsi_logs/yuno-n_agentn_.txt")
 # chat_log2 = parse_text("bwsi_logs/ajay-g_ajaytastic.txt")
 # chat_log3 = parse_text("bwsi_logs/jacqueline-t_dear_jacquelineee0905.txt")
