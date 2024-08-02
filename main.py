@@ -98,7 +98,7 @@ def graph_scores(x, y, file_name):
 
     # Creates plot
     plt.savefig(file_name)
-    # plt.show()
+    #plt.show()
 
 
 def graph_dates(x, y):
@@ -327,12 +327,16 @@ for text_files in student_logs:
     date.reverse()
     score.reverse()
     new_score = interp(score, date)
-    total_data += new_score
+    if count == 0:
+        total_data = new_score
+    else:
+        total_data = list(np.array(total_data) + np.array(new_score))
     graph_filename = "./bwsi_graphs/"+text_files[:-2]+"_graph.png"
     graph_scores(NUM_DATES, new_score, graph_filename)
     count += 1
 
-total_data *= 1.0/count
+for i in range(len(total_data)):
+    total_data[i] *= 1.0/count
 
 graph_filename = "./bwsi_graphs/total_avg_graph.png"
 graph_scores(NUM_DATES, total_data, graph_filename)
